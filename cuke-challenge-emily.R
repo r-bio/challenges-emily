@@ -98,3 +98,57 @@ check_tf <- nzchar(class.renamed)
 length(check_tf[check_tf==TRUE])  ## Returns 2894 so all empty values have been replaced.
 #can now remove check_tf since the number of objects I have stored are getting out of hand...
 rm(check_tf)
+
+#Now getting list of gnerea that have subgenera associated with them.
+#Use nom data.frame
+
+str(nom)
+subgenus <- nom$Subgenus.orig
+subgen_length <- nzchar(subgenus)  # Finding FALSE entries for missing data using nzchar function (on a character vector). Making a logical object
+length(subgen_length)  #total length of entries?? I think it's all of them... Returned:   [1] 199
+length(subgen_length[subgen_length=TRUE])  ## Returns [1] 199 if you only use 1 equals sign (even after importing with na.strings="" function). But I think there are missing values here. 
+length(subgen_length[subgen_length==TRUE])  ## Returns [1] 59 if you use 2 equal signs, == instead of =
+
+##Problem is that empty cells aren't being recognized as na-- How do you deal with this without re-importing file?
+## Re-importing files to fill blanks with NA
+hol_NA <- read.csv(file="data/holothuriidae-specimens.csv", stringsAsFactors=FALSE, na.strings="")
+nom_NA <- read.csv(file="data/holothuriidae-nomina-valid.csv", stringsAsFactors=FALSE, na.strings="")
+## extracting subgenus again from new file with NA
+subgenus <- nom_NA$Subgenus.orig   #subgenus is a character object
+subgenus_noNA <- na.omit(nom_NA$Subgenus.orig)  ## totally empty but we know they're not all NA. NA.OMIT ONLY WORKS ON VECTORS! oops.
+subgenus_noNA2 <- na.omit(subgenus)  ## also totally empty  :(
+## remove subgenus_noNA, and subgenus_noNA2
+rm(subgenus_noNA)
+rm(subgenus_noNA2)
+## Try complete cases??
+## SYNTAX:  surveys_complete <- surveys[complete.cases(surveys), ]
+subgenus_noNA <- subgenus[complete.cases(subgenus)]  # Fxn complete.cases works with characters
+length(subgenus_noNA)
+## There are 59 subgenera listed.  ##this is not the ideal way to find it though since you're only looking in the subgenus column and you want to know how many genera have subgenera associated wtih them...
+#let's test it out with  the logical subgen_length
+subgen_length_noNA <- subgen_length[complete.cases(subgen_length)]
+length(subgen_length_noNA[subgen_length_noNA==TRUE])
+
+## getting genus and species from hol dataset (using datasets with NA in them)
+hol_genus <- hol_NA$dwc.genus
+hol_species <- hol_NA$dwc.specificEpithet
+hol_genus_species <- paste(hol_genus, hol_species, sep=" ")
+head(hol_genus_species)
+
+nom_genus <- nom_NA$Genus.current
+nom_species <- nom_NA$species.current
+nom_genus_species <- paste(nom_genus, nom_species, sep=" ")
+
+#now paste this column into the hol data.frame
+hol2 <- paste(hol, nom_genus_species, sep=" ")
+#using merge function to combine 2 objects. use all.x  or all.y option to add extra rows
+# hol_genus_species has 2984 elements but nom_genus_species only has 199 elements
+
+gen_sp_combined <- merge(hol_genus_species, nom_genus_species, all.hol_genus_species=TRUE, sort=TRUE)  ## get same number with all.hol_genus_species=all as with  all.hol_genus_species=TRUE
+head(gen_sp_combined)
+nrow(gen_sp_combined)
+
+#combining hol and nom data.frames
+all_data <- merge(hol2, nom, all.hol2=TRUE, sort=TRUE)
+head(all_data)
+
