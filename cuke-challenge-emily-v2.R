@@ -14,10 +14,12 @@ str(hol)  #class is stored as a vector in class character
 class_hol <- hol[,c("dwc.class")]
 length(class_hol)
 ## There are [1] 2984 entries for specimens in holothuriidae specimens data sheet
+rm(class_hol)
 
 ##Maybe some are missing? We can check for NA:
 class_hol_noNA <- na.omit(hol$dwc.class)
 length(class_hol_noNA)  ## This gives us 2984 entries
+rm(class_hol_noNA)
 
 # want to manipulate the elements of the data.frame as factor
 hol_factors <- read.csv(file="data/holothuriidae-specimens.csv")
@@ -44,12 +46,9 @@ sort(year_complete, decreasing = TRUE)[length-1:10]
 ## The earliest YEAR is 1902.  ##
 
 ## Finding missing entries in Class list using nzchar function
-orig_class <- is.na(class_hol)
-orig_class
-
 #Using the data set that has NO factors in it:
 #getting the class column from the data.frame
-class <- hol$dwc.class   
+class <- hol$dwc.class
 #Now using nzchar and it works! Stored it as a logical called class_TF 
 class_TF <- nzchar(class)  
 length(class_TF)
@@ -67,7 +66,7 @@ length(check_tf[check_tf==TRUE])
 ## Returns 2984 so all empty values have been replaced.
 #can now remove check_tf since the number of objects I have stored are getting out of hand...
 rm(check_tf)
-
+rm(class.renamed)
 
 #Now getting list of genera that have subgenera associated with them.
 #Use nom data.frame
@@ -88,24 +87,44 @@ subgenus_noNA <- subgenus[complete.cases(subgenus)]  # Fxn complete.cases works 
 length(subgenus_noNA)
 ## There are 59 subgenera listed.  
 ##this is not the ideal way to find it though since you're only looking in the subgenus column and you want to know how many genera have subgenera associated wtih them...
-#let's test it out with  the logical subgen_length
+#let's test it out with the logical subgen_length
 subgen_length_noNA <- subgen_length[complete.cases(subgen_length)]
 length(subgen_length_noNA[subgen_length_noNA==TRUE])
 
+## Making new column with genus and species names in hol data.frame and adding it to the hol data.frame
+## hol_copy <- data.frame(hol)  # made copy of data.frame just in case it didn't work
+hol_gen_sp <- paste(hol$dwc.genus, hol$dwc.specificEpithet, sep=" ")
+hol_new <- data.frame(cbind(hol, hol_gen_sp))  ## Successfully added column to hol_new data.frame
+
+## Making new column with genus and species names in nom data.frame and adding it to the nom data.frame
+nom_copy <- data.frame(nom)
+nom_gen_sp <- paste(nom$Genus.current, nom$species.current, sep=" ")
+nom_new <- data.frame(cbind(nom, nom_gen_sp))
+rm(nom_copy)
+
+#Combining new data frames (hol_new and nom_new)
+nom_hol <- merge(hol_new, nom_new, all.hol_new=TRUE, sort=TRUE)
+head(nom_hol)
+
+
+######## This is all the crap that didn't work yesterday. Just here for the record ##########
+
+##### making the genus and species new objects (basically copying them out of hte data.frames)
+##### didn't work when I tried to glue them back together)
 ## getting genus and species from hol_NA dataset (using datasets with NA in them)
-hol_genus <- hol_NA$dwc.genus
-hol_species <- hol_NA$dwc.specificEpithet
-hol_genus_species <- paste(hol_genus, hol_species, sep=" ")
-head(hol_genus_species)
+#hol_genus <- hol_NA$dwc.genus
+#hol_species <- hol_NA$dwc.specificEpithet
+#hol_genus_species <- paste(hol_genus, hol_species, sep=" ")
+#head(hol_genus_species)
 
 ## getting genus and species from nom_NA dataset (using datasets with NA in them)
-nom_genus <- nom_NA$Genus.current
-nom_species <- nom_NA$species.current
-nom_genus_species <- paste(nom_genus, nom_species, sep=" ")
+#nom_genus <- nom_NA$Genus.current
+#nom_species <- nom_NA$species.current
+#nom_genus_species <- paste(nom_genus, nom_species, sep=" ")
 
 
 
-######## FROM HERE, ERRORS. MANY ERRORS. HELP PLEASE! ##########
+
 ## Need to add the value "nom_genus_species" as a new column in nom_NA data.frame and need to add "hol_genus_species" to hol data.frame.
 
 #now paste "nom_genus_species" as a new column into the hol data.frame  ##these don't work
